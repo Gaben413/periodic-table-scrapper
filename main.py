@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import csv
+from openpyxl import Workbook
 
 #url = ['https://pt.wikipedia.org/wiki/Hidrog%C3%A9nio', 'https://pt.wikipedia.org/wiki/L%C3%ADtio']
 
@@ -133,48 +134,46 @@ def saveJSON():
     
     print('JSON saved')
 
+headers = [
+    'nome',
+    'simbolo',
+    'numero',
+    'serie_quimica',
+    'grupo',
+    'periodo',
+    'bloco',
+    'densidade_dureza',
+    'numero_CAS',
+    'massa_atomica',
+    'raio_atomico_calculado',
+    'raio_covalente',
+    'raio_de_van_der_waals',
+    'configuracao_eletronica',
+    'eletrons[0]',
+    'eletrons[1]',
+    'eletrons[2]',
+    'eletrons[3]',
+    'eletrons[4]',
+    'eletrons[5]',
+    'estado_de_oxidacao',
+    'estrutura_cristalina',
+    'estado_da_materia',
+    'ponto_de_fusao',
+    'ponto_de_ebulicao',
+    'entalpia_de_fusao',
+    'entalpia_de_vaporizacao',
+    'volume_molar',
+    'pressao_de_vapor',
+    'velocidade_do_som',
+    'classe_magnetica'
+]
+
 def saveCSV():
     with open('data.csv', mode='w', encoding='utf8') as outfile:
 
         filewriter = csv.writer(outfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-        fieldnames = [
-            'nome',
-            'simbolo',
-            'numero',
-            'serie_quimica',
-            'grupo',
-            'periodo',
-            'bloco',
-            'densidade_dureza',
-            'numero_CAS',
-            'massa_atomica',
-            'raio_atomico_calculado',
-            'raio_covalente',
-            'raio_de_van_der_waals',
-            'configuracao_eletronica',
-            'eletrons[0]',
-            'eletrons[1]',
-            'eletrons[2]',
-            'eletrons[3]',
-            'eletrons[4]',
-            'eletrons[5]',
-            'estado_de_oxidacao',
-            'estrutura_cristalina',
-            'estado_da_materia',
-            'ponto_de_fusao',
-            'ponto_de_ebulicao',
-            'entalpia_de_fusao',
-            'entalpia_de_vaporizacao',
-            'volume_molar',
-            'pressao_de_vapor',
-            'velocidade_do_som',
-            'classe_magnetica'
-        ]
-
-        #31
-
-        filewriter.writerow(fieldnames)
+        filewriter.writerow(headers)
 
         for obj in objs:
             electrons = []
@@ -220,5 +219,71 @@ def saveCSV():
             ])
     print('CSV saved')
 
+def saveEXCEL():
+
+    filename = 'data.xlsx'
+
+    workbook = Workbook()
+    sheet = workbook.active
+
+    #SET HEADERS
+    for i, header in enumerate(headers):
+        sheet.cell(row=1, column=(i+1)).value = header
+
+    #ADD DATA
+    for i, obj in enumerate(objs):
+        electrons = []
+        max_num = len(obj['eletrons'])
+
+        '''
+        for item in obj.items():
+            print(item[1])
+        '''
+
+        for e in range(6):
+            if(e < max_num):
+                electrons.append(obj['eletrons'][e])
+            else:
+                electrons.append(0)
+        
+        sheet.cell(row=(i+2), column=1).value = obj['nome']
+        sheet.cell(row=(i+2), column=2).value = obj['simbolo']
+        sheet.cell(row=(i+2), column=3).value = obj['numero']
+        sheet.cell(row=(i+2), column=4).value = obj['serie_quimica']
+        sheet.cell(row=(i+2), column=5).value = obj['grupo']
+        sheet.cell(row=(i+2), column=6).value = obj['periodo']
+        sheet.cell(row=(i+2), column=7).value = obj['bloco']
+        sheet.cell(row=(i+2), column=8).value = obj['densidade_dureza']
+        sheet.cell(row=(i+2), column=9).value = obj['numero_CAS']
+        sheet.cell(row=(i+2), column=10).value = obj['massa_atomica']
+        sheet.cell(row=(i+2), column=10).value = obj['raio_atomico_calculado']
+        sheet.cell(row=(i+2), column=11).value = obj['raio_covalente']
+        sheet.cell(row=(i+2), column=12).value = obj['raio_de_van_der_waals']
+        sheet.cell(row=(i+2), column=13).value = obj['nome']
+        sheet.cell(row=(i+2), column=14).value = obj['configuracao_eletronica']
+        sheet.cell(row=(i+2), column=15).value = electrons[0]
+        sheet.cell(row=(i+2), column=16).value = electrons[1]
+        sheet.cell(row=(i+2), column=17).value = electrons[2]
+        sheet.cell(row=(i+2), column=18).value = electrons[3]
+        sheet.cell(row=(i+2), column=19).value = electrons[4]
+        sheet.cell(row=(i+2), column=20).value = electrons[5]
+        sheet.cell(row=(i+2), column=21).value = obj['estado_de_oxidacao']
+        sheet.cell(row=(i+2), column=22).value = obj['estrutura_cristalina']
+        sheet.cell(row=(i+2), column=23).value = obj['estado_da_materia']
+        sheet.cell(row=(i+2), column=24).value = obj['ponto_de_fusao']
+        sheet.cell(row=(i+2), column=25).value = obj['ponto_de_ebulicao']
+        sheet.cell(row=(i+2), column=26).value = obj['entalpia_de_fusao']
+        sheet.cell(row=(i+2), column=27).value = obj['entalpia_de_vaporizacao']
+        sheet.cell(row=(i+2), column=28).value = obj['volume_molar']
+        sheet.cell(row=(i+2), column=29).value = obj['pressao_de_vapor']
+        sheet.cell(row=(i+2), column=30).value = obj['velocidade_do_som']
+        sheet.cell(row=(i+2), column=31).value = obj['classe_magnetica']
+        
+
+    workbook.save(filename=filename)
+
+    print('EXCEL saved')
+
 saveJSON()
 saveCSV()
+saveEXCEL()
