@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import json
+import csv
 
 #url = ['https://pt.wikipedia.org/wiki/Hidrog%C3%A9nio', 'https://pt.wikipedia.org/wiki/L%C3%ADtio']
 
@@ -55,7 +56,14 @@ def fetchStuff(target_URL):
         #print(f"{i} | {data_array[id]}")
 
     #print(processed_data_array[10][1])
-    electrons = [int(electron.replace('[1]', '').replace('(ver imagem)', '').strip()) for electron in processed_data_array[10][1].split(',')]
+    electrons = []
+
+    for electron in processed_data_array[10][1].split(','):
+        processed_electron = electron.replace('(ver imagem)', '').strip()
+        if(processed_electron.isdigit()):
+            electrons.append(int(processed_electron))
+
+    #print(electrons)
     
     obj = {
         'nome': processed_data_array[0][1].split(',')[0],
@@ -71,11 +79,11 @@ def fetchStuff(target_URL):
         'massa_atomica': processed_data_array[5][1],
         'raio_atomico_calculado': processed_data_array[6][1],
         'raio_covalente': processed_data_array[7][1],
-        'raio_de_van_der-waals': processed_data_array[8][1],
+        'raio_de_van_der_waals': processed_data_array[8][1],
         'configuracao_eletronica': processed_data_array[9][1],
         'eletrons': electrons,
         'estado_de_oxidacao': processed_data_array[11][1],
-        'estrutura cristalina': processed_data_array[12][1],
+        'estrutura_cristalina': processed_data_array[12][1],
         'estado_da_materia': processed_data_array[13][1],
         'ponto_de_fusao': processed_data_array[14][1],
         'ponto_de_ebulicao': processed_data_array[15][1],
@@ -106,18 +114,111 @@ limit = 82
 for i, url in enumerate(urls):
     print(f"Pulling URL #{i} | {url}")
     current_obj = fetchStuff(url)
-    objs.append(current_obj)
+    if(current_obj['numero'] <= limit):
+        objs.append(current_obj)
 
     #print(f"Numero Atomico: {current_obj['numero']}")
+    #break
 
-    if(current_obj['numero'] >= limit):
-        break
+objs.sort(key=lambda x: x['numero'], reverse=False)
 
 #print(objs)
+def saveJSON():
+    json_dump = json.dumps(objs, indent=3, ensure_ascii=False)
 
-json_dump = json.dumps(objs, indent=3, ensure_ascii=False)
+    #print(json_dump)
 
-#print(json_dump)
+    with open('data.json', 'w', encoding='utf8') as outfile:
+        outfile.write(json_dump)
+    
+    print('JSON saved')
 
-with open('data.json', 'w', encoding='utf8') as outfile:
-    outfile.write(json_dump)
+def saveCSV():
+    with open('data.csv', mode='w', encoding='utf8') as outfile:
+
+        filewriter = csv.writer(outfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        fieldnames = [
+            'nome',
+            'simbolo',
+            'numero',
+            'serie_quimica',
+            'grupo',
+            'periodo',
+            'bloco',
+            'densidade_dureza',
+            'numero_CAS',
+            'massa_atomica',
+            'raio_atomico_calculado',
+            'raio_covalente',
+            'raio_de_van_der_waals',
+            'configuracao_eletronica',
+            'eletrons[0]',
+            'eletrons[1]',
+            'eletrons[2]',
+            'eletrons[3]',
+            'eletrons[4]',
+            'eletrons[5]',
+            'estado_de_oxidacao',
+            'estrutura_cristalina',
+            'estado_da_materia',
+            'ponto_de_fusao',
+            'ponto_de_ebulicao',
+            'entalpia_de_fusao',
+            'entalpia_de_vaporizacao',
+            'volume_molar',
+            'pressao_de_vapor',
+            'velocidade_do_som',
+            'classe_magnetica'
+        ]
+
+        #31
+
+        filewriter.writerow(fieldnames)
+
+        for obj in objs:
+            electrons = []
+            max_num = len(obj['eletrons'])
+            for i in range(6):
+                if(i < max_num):
+                    electrons.append(obj['eletrons'][i])
+                else:
+                    electrons.append(0)
+
+            filewriter.writerow([
+                obj['nome'],
+                obj['simbolo'],
+                obj['numero'],
+                obj['serie_quimica'],
+                obj['grupo'],
+                obj['periodo'],
+                obj['bloco'],
+                obj['densidade_dureza'],
+                obj['numero_CAS'],
+                obj['massa_atomica'],
+                obj['raio_atomico_calculado'],
+                obj['raio_covalente'],
+                obj['raio_de_van_der_waals'],
+                obj['configuracao_eletronica'],
+                electrons[0],
+                electrons[1],
+                electrons[2],
+                electrons[3],
+                electrons[4],
+                electrons[5],
+                obj['estado_de_oxidacao'],
+                obj['estrutura_cristalina'],
+                obj['estado_da_materia'],
+                obj['ponto_de_fusao'],
+                obj['ponto_de_ebulicao'],
+                obj['entalpia_de_fusao'],
+                obj['entalpia_de_vaporizacao'],
+                obj['volume_molar'],
+                obj['pressao_de_vapor'],
+                obj['velocidade_do_som'],
+                obj['classe_magnetica'],
+            ])
+    print('CSV saved')
+
+saveJSON()
+saveCSV()
