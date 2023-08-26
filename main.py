@@ -278,7 +278,8 @@ def saveEXCEL():
         sheet.cell(row=(i+2), column=29).value = obj['pressao_de_vapor']
         sheet.cell(row=(i+2), column=30).value = obj['velocidade_do_som']
         sheet.cell(row=(i+2), column=31).value = obj['classe_magnetica']
-        
+
+    sheet.freeze_panes = "A2"        
 
     workbook.save(filename=filename)
 
